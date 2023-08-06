@@ -1,0 +1,27 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 924974325932-vidksk9nslq2qusvn7pt8abff3hdjvcg.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - profile
+              - email
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/career
+    username: root
+    password: 9854
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+jwt:
+  access:
+    secret: fske256d3433kf2er454ddd35435rddkzfefdsdfjldkjfdxfd5dsfx2432dszdfdsfsfs12xdfds2sa
+  refresh:
+    secret: fske256d3433kf2er454ddd35435rddkzfefdsdfjldkjfdxfd5dsfx2432dszdfdsfsfs12xdfds2sa
+server:
+  port: 8030
