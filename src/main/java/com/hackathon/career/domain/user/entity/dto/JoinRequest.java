@@ -1,8 +1,8 @@
 package com.hackathon.career.domain.user.entity.dto;
 
 import com.hackathon.career.domain.user.entity.User;
-import com.hackathon.career.domain.user.entity.UserRole;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,15 +19,21 @@ public class JoinRequest {
     private String password;
 
     @NotBlank(message = "닉네임이 비어있습니다.")
-    private String nickname;
+    private String username;
 
-    // 비밀번호 암호화
-    public User toEntity(String encodedPassword) {
+
+    // 비밀번호 암호화 X
+    public User toEntity() {
         return User.builder()
                 .loginId(this.loginId)
-                .password(encodedPassword)
-                .nickname(this.nickname)
-                .role(UserRole.USER)
+                .password(this.password)
+                .username(this.username)
                 .build();
+    }
+    @Builder
+    public JoinRequest(String loginId, String password, String username) {
+        this.loginId = loginId;
+        this.password = password;
+        this.username = username;
     }
 }

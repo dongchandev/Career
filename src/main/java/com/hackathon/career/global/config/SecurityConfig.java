@@ -1,8 +1,7 @@
 package com.hackathon.career.global.config;
 
-import com.hackathon.career.domain.user.entity.UserRole;
-import com.hackathon.career.domain.user.service.UserService;
 import com.hackathon.career.global.auth.jwt.JwtTokenFilter;
+import com.hackathon.career.global.auth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,20 +16,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserService userService;
-    private static String secretKey = "my-secret-key-123123";
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .httpBasic().disable()
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
                 .csrf().disable()
+//                .httpBasic().disable()
+//                .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterBefore(new JwtTokenFilter(userService, secretKey), UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests()
-                .requestMatchers("/jwt-login/info").authenticated()
-                .requestMatchers("/jwt-login/admin/**").hasAuthority(UserRole.ADMIN.name())
-                .and().build();
+                .authorizeRequests(request -> request
+                        .requestMatchers("/login", "/join", "/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 }

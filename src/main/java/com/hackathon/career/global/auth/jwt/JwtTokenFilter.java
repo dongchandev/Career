@@ -1,67 +1,44 @@
 package com.hackathon.career.global.auth.jwt;
 
 
-import com.hackathon.career.domain.user.entity.User;
-import com.hackathon.career.domain.user.service.UserService;
+import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.List;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.GenericFilterBean;
 
 @RequiredArgsConstructor
-public class JwtTokenFilter extends OncePerRequestFilter {
+public class JwtTokenFilter extends GenericFilterBean {
 
-    private final UserService userService;
-    private final String secretKey;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException, java.io.IOException {
 
-        // Header의 Authorization 값이 비어있으면 => Jwt Token을 전송하지 않음 => 로그인 하지 않음
-        if(authorizationHeader == null) {
-            filterChain.doFilter(request, response);
-            return;
+        // 1. Request Header 에서 JWT 토큰 추출
+        String token = resolveToken((HttpServletRequest) request);
+
+        // 2. validateToken 으로 토큰 유효성 검사
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
+            Authentication authentication = jwtTokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+        chain.doFilter(request, response);
+    }
 
-        // Header의 Authorization 값이 'Bearer '로 시작하지 않으면 => 잘못된 토큰
-        if(!authorizationHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+    // Request Header 에서 토큰 정보 추출
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
+            return bearerToken.substring(7);
         }
-
-        // 전송받은 값에서 'Bearer ' 뒷부분(Jwt Token) 추출
-        String token = authorizationHeader.split(" ")[1];
-
-        // 전송받은 Jwt Token이 만료되었으면 => 다음 필터 진행(인증 X)
-        if(JwtTokenUtil.isExpired(token, secretKey)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // Jwt Token에서 loginId 추출
-        String loginId = JwtTokenUtil.getLoginId(token, secretKey);
-
-        // 추출한 loginId로 User 찾아오기
-        User loginUser = userService.getLoginUserByLoginId(loginId);
-
-        // loginUser 정보로 UsernamePasswordAuthenticationToken 발급
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                loginUser.getLoginId(), null, List.of(new SimpleGrantedAuthority(loginUser.getRole().name())));
-        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-        // 권한 부여
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        filterChain.doFilter(request, response);
+        return null;
     }
 }

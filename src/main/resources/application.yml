@@ -12,16 +12,13 @@ spring:
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/career
     username: root
-    password: 9854
+    password: lyi98549854
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
 jwt:
-  access:
-    secret: fske256d3433kf2er454ddd35435rddkzfefdsdfjldkjfdxfd5dsfx2432dszdfdsfsfs12xdfds2sa
-  refresh:
-    secret: fske256d3433kf2er454ddd35435rddkzfefdsdfjldkjfdxfd5dsfx2432dszdfdsfsfs12xdfds2sa
+  secret: VlwEyVBsYt9V7zq57TejMnVUyzblYcfPQye08f7MGVA9XkHa
 server:
   port: 8030
