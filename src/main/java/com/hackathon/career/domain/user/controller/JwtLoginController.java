@@ -4,9 +4,11 @@ import com.hackathon.career.domain.user.entity.dto.JoinRequest;
 import com.hackathon.career.domain.user.entity.dto.LoginRequest;
 import com.hackathon.career.domain.user.service.UserService;
 import com.hackathon.career.global.auth.jwt.TokenInfo;
+import com.hackathon.career.global.exception.GlobalException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,11 +26,11 @@ public class JwtLoginController {
 
         // loginId 중복 체크
         if(userService.checkLoginIdDuplicate(joinRequest.getLoginId())) {
-            return "로그인 아이디가 중복됩니다.";
+            throw new GlobalException(HttpStatus.UNAUTHORIZED, "로그인 아이디가 중복입니다");
         }
         // 닉네임 중복 체크
         if(userService.checkUsernameDuplicate(joinRequest.getUsername())) {
-            return "닉네임이 중복됩니다.";
+            throw new GlobalException(HttpStatus.UNAUTHORIZED, "유저이름이 중복입니다");
         }
 
         userService.join(joinRequest);

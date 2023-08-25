@@ -1,6 +1,7 @@
 package com.hackathon.career.global.auth.jwt;
 
 
+import com.hackathon.career.global.exception.GlobalException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -43,6 +45,8 @@ public class JwtTokenProvider {
         long now = (new Date()).getTime();
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + 86400000);//1일
+//        Date accessTokenExpiresIn = new Date(now + 1000*60);//1분
+
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -53,16 +57,22 @@ public class JwtTokenProvider {
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + 1209600000))//2주
+//                .setExpiration(new Date(now + 1000*60*5))//2주
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-        Cookie myAccessTokenCookie=new Cookie("accessToken",accessToken);
-        Cookie myRefreshTokenCookie=new Cookie("refreshToken",refreshToken);
-        myAccessTokenCookie.setHttpOnly(true);
-        myAccessTokenCookie.setPath("/");
-        myRefreshTokenCookie.setHttpOnly(true);
-        myRefreshTokenCookie.setPath("/");
-        response.addCookie(myAccessTokenCookie);
-        response.addCookie(myRefreshTokenCookie);
+//{
+//    "grantType": "Bearer",
+//    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxcTFhc2ZkYXExcTFxIiwiYXV0aCI6IiIsImV4cCI6MTY5MTU0MjYyNH0.fD1lnJ2Yl67zSluFd5jKCwddcl9i3-pPgsUSuySriIA",
+//    "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTE1NDI4NjR9.RVsKk4JZS65QlBjuBUXGYFzc0G2UJAnvS4MpF98DXfQ"
+//}
+
+//{
+//    "grantType": "Bearer",
+//    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxcTFhc2ZkYXExcTFxIiwiYXV0aCI6IiIsImV4cCI6MTY5MTU0MjY5OH0.2850rdQ1WiblLuni26Z0tejt9jNngOg3_fMkU3VpdN8",
+//    "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTE1NDI5Mzh9.RSLdm0FarLyuolIIOCZzXuhjB5KZ5U0HZ3JDWcrcBS4"
+//}3
+
+
         return TokenInfo.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
@@ -91,20 +101,22 @@ public class JwtTokenProvider {
     }
 
     // 토큰 정보를 검증하는 메서드
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
+            log.error("Invalid JWT Token", e);
+            throw new GlobalException(HttpStatus.BAD_REQUEST, "Invalid JWT Token");
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            log.error("Expired JWT Token", e);
+            throw new GlobalException(HttpStatus.UNAUTHORIZED, "Expired JWT Token");
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
+            log.error("Unsupported JWT Token", e);
+            throw new GlobalException(HttpStatus.BAD_REQUEST, "Unsupported JWT Token");
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
+            log.error("JWT claims string is empty.", e);
+            throw new GlobalException(HttpStatus.BAD_REQUEST, "JWT claims string is empty.");
         }
-        return false;
     }
 
     private Claims parseClaims(String accessToken) {
