@@ -27,4 +27,4 @@ feign:
     url: https://www.career.go.kr/cnet/openapi/getOpenApi.json?apiKey=27bdfe7bda79b1df1991d10cdc6c5850
 
 chatgpt:
-  api-key: 
+  api-key: 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
