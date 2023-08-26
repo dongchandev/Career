@@ -2,7 +2,6 @@ package com.hackathon.career.domain.test.controller;
 
 import com.hackathon.career.domain.chatGpt.ChatGptService;
 import com.hackathon.career.domain.test.entity.Questionnaire;
-import com.hackathon.career.domain.test.service.QuestionnaireService;
 import com.hackathon.career.domain.test.service.req.QuestionnaireReq;
 import com.hackathon.career.domain.test.service.res.QuestionnaireRes;
 import com.hackathon.career.domain.test.service.res.ResponseData;
@@ -22,7 +21,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 public class QuestionnaireController {
-    private QuestionnaireService questionnaireService;
     private final ChatGptService chatGptService;
     private final ChatgptService chatgptService;
     private final UserService userService;
@@ -32,6 +30,7 @@ public class QuestionnaireController {
         return chatGptService.getChatResponse();
     }
 
+    @PostMapping("/question")
     public ResponseEntity<String> recommendCareer(@RequestBody List<ResponseData> responses) {
         // responses 리스트를 활용하여 직업 추천 로직을 수행하는 부분
 
