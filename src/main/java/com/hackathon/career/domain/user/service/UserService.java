@@ -4,11 +4,13 @@ import com.hackathon.career.domain.user.entity.User;
 import com.hackathon.career.domain.user.entity.dto.LoginRequest;
 import com.hackathon.career.global.auth.jwt.JwtTokenProvider;
 import com.hackathon.career.global.auth.jwt.TokenInfo;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.hackathon.career.domain.user.entity.dto.JoinRequest;
 import com.hackathon.career.domain.user.repository.UserRepository;
@@ -54,4 +56,9 @@ public class UserService {
 
         return tokenInfo;
     }
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    }
+
 }

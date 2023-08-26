@@ -1,7 +1,9 @@
 package com.hackathon.career.domain.test.entity;
 
+import com.hackathon.career.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,9 +17,18 @@ public class Questionnaire {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
+    @Column(columnDefinition = "json")
     private String description;
+    private String job;
 
-    @OneToMany(mappedBy = "questionnaire", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Question> question;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Builder
+    public Questionnaire(String description, String job, User user) {
+        this.description = description;
+        this.job = job;
+        this.user = user; // User 엔티티와 연결
+    }
 }

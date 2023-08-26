@@ -1,6 +1,7 @@
 package com.hackathon.career.domain.user.entity;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.hackathon.career.domain.test.entity.Questionnaire;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="user_id")
     private Long id;
     private String loginId;
     private String password;
@@ -31,6 +33,11 @@ public class User implements UserDetails {
 
     private String username;
 
+    private String job;
+
+    @JoinColumn(name = "questionnaire_id")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Questionnaire questionnaire;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
